@@ -1,0 +1,5 @@
+model,target_type,target,split,metric,value
+seasonal_naive,regression,mean_delay,holdout,sMAPE,0.8871373821741698
+xgboost,regression,mean_delay,holdout,sMAPE,0.7789156498378338
+xgboost,classification,exceed_delay_2.0,holdout,PR_AUC,0.16517293358497537
+xgboost,classification,exceed_delay_2.0,holdout,F1,0.0
