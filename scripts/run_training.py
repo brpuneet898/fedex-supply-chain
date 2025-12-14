@@ -1,5 +1,5 @@
-# scripts/run_training.py
 import os
+import json
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,18 +7,30 @@ from tqdm import trange
 
 from src.env_supplychain import SupplyChainSimEnv
 from src.agent_qlearning import QLearningAgent, get_bins, get_action_space
-from src.baselines.policy_sS import SsPolicy, SsParams
-from src.baselines.policy_myopic import MyopicPolicy, MyopicParams
-from scripts.run_baselines import run_policy, compute_kpis  # reuse functions
+from scripts.run_baselines import compute_kpis  # reuse KPI logic
 
-FIG_DIR = os.path.join(os.path.dirname(__file__), "..", "figures")
-CSV_DIR = os.path.join(os.path.dirname(__file__), "..", "csv_results")
-os.makedirs(FIG_DIR, exist_ok=True)
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+CSV_DIR = os.path.join(ROOT, "csv_results")
+FIG_DIR = os.path.join(ROOT, "figures")
+REPORT_DIR = os.path.join(ROOT, "reports", "rl_pilot")
 os.makedirs(CSV_DIR, exist_ok=True)
+os.makedirs(FIG_DIR, exist_ok=True)
+os.makedirs(REPORT_DIR, exist_ok=True)
 
-def run_qlearning(env_cfg, episodes=1000, seeds=[0, 1, 2]):
+
+def load_scenarios(cfg_path: str):
+    with open(cfg_path, "r", encoding="utf-8") as f:
+        cfg = json.load(f)
+    scenarios = cfg.get("scenarios", [])
+    if not scenarios:
+        raise ValueError(f"No scenarios found in {cfg_path}")
+    return scenarios
+
+
+def run_qlearning_one_scenario(scenario_id: str, env_cfg: dict, episodes=1000, seeds=(0, 1, 2)):
     curves = []
-    results = []
+    kpi_rows = []
+
     for seed in seeds:
         env = SupplyChainSimEnv(config=env_cfg, seed=seed)
         obs_bins = get_bins()
@@ -26,16 +38,13 @@ def run_qlearning(env_cfg, episodes=1000, seeds=[0, 1, 2]):
         agent = QLearningAgent(obs_bins, action_space)
 
         rewards = []
-        for ep in trange(episodes, desc=f"QL seed {seed}"):
+        for ep in trange(episodes, desc=f"QL {scenario_id} seed {seed}", leave=False):
             obs = env.reset()
             done = False
-            ep_rew = 0
+            ep_rew = 0.0
             ep_log = []
-            while not done:
-                # action = agent.select_action(obs)
-                # next_obs, reward, done, info = env.step(action)
-                # agent.learn(obs, action, reward, next_obs, done)
 
+            while not done:
                 action_idx = agent.select_action(obs)
                 q, e, m = action_space[action_idx]
                 action = {"order_qty": q, "expedite": e, "mitigate": m}
@@ -43,72 +52,90 @@ def run_qlearning(env_cfg, episodes=1000, seeds=[0, 1, 2]):
                 next_obs, reward, done, info = env.step(action)
                 agent.update(obs, action_idx, reward, next_obs, done)
 
-                # log
-                demand = getattr(env, "demand_forecast", 10)
-                inv = int(round(float(obs[0])))
-                fulfilled = min(inv, demand)
+                demand = int(info.get("demand", getattr(env, "demand_forecast", 10)))
+                fulfilled = int(info.get("fulfilled", min(int(round(float(obs[0]))), demand)))
+
                 ep_log.append({
                     "cost": -float(reward),
                     "scri": float(info.get("scri", 0.0)),
-                    "demand": int(demand),
-                    "fulfilled": int(fulfilled)
+                    "demand": demand,
+                    "fulfilled": fulfilled
                 })
-                ep_rew += reward
+
+                ep_rew += float(reward)
                 obs = next_obs
 
             rewards.append(ep_rew)
-            kpis = compute_kpis(ep_log)
-            kpis["method"] = "qlearning"
-            kpis["seed"] = seed
-            kpis["episode"] = ep
-            results.append(kpis)
+            k = compute_kpis(ep_log, scri_threshold=float(getattr(env, "scri_threshold", 0.7)))
+            k.update({
+                "scenario": scenario_id,
+                "method": "qlearning",
+                "seed": int(seed),
+                "episode": int(ep),
+                "c_h": float(getattr(env, "c_h", np.nan)),
+                "c_b": float(getattr(env, "c_b", np.nan)),
+                "c_o": float(getattr(env, "c_o", np.nan)),
+                "c_disruption": float(getattr(env, "c_disruption", np.nan)),
+                "lambda_scri": float(getattr(env, "lambda_scri", np.nan)),
+                "scri_threshold": float(getattr(env, "scri_threshold", 0.7)),
+                "scri_mode": str(getattr(env, "scri_mode", "indicator")),
+            })
+            kpi_rows.append(k)
 
-        curves.append({"seed": seed, "rewards": rewards})
+        curves.append({"scenario": scenario_id, "seed": seed, "rewards": rewards})
 
-    # Save learning curves
+    return curves, kpi_rows
+
+
+def save_learning_curve_png(curves, scenario_id: str):
+    plt.figure()
     for c in curves:
+        if c["scenario"] != scenario_id:
+            continue
         plt.plot(c["rewards"], alpha=0.6, label=f"seed {c['seed']}")
     plt.xlabel("Episode")
     plt.ylabel("Cumulative Reward")
-    plt.title("Q-learning Learning Curves")
+    plt.title(f"Q-learning Learning Curves ({scenario_id})")
     plt.legend()
-    plt.savefig(os.path.join(FIG_DIR, "qlearning_learning_curves.png"))
+    plt.grid(True)
+    out = os.path.join(REPORT_DIR, f"learning_curve_{scenario_id}.png")
+    plt.tight_layout()
+    plt.savefig(out)
     plt.close()
+    return out
 
-    pd.DataFrame(results).to_csv(os.path.join(CSV_DIR, "qlearning_kpis.csv"), index=False)
-    print("Saved Q-learning results to csv_results/qlearning_kpis.csv")
 
-def run_all(env_cfg):
-    # 1. Train Q-learning (3 seeds × 1000 episodes)
-    run_qlearning(env_cfg, episodes=1000, seeds=[0, 1, 2])
+def main():
+    scenarios_path = os.path.join(ROOT, "configs", "rl_pilot", "scenarios.json")
+    scenarios = load_scenarios(scenarios_path)
 
-    # 2. Baselines (reuse run_baselines)
-    from scripts.run_baselines import grid_sS, run_myopic
-    sS_rows = grid_sS(env_cfg, episodes=50, seed=42)
-    myopic_rows = run_myopic(env_cfg, episodes=50, seed=42)
-    df_base = pd.DataFrame(sS_rows + myopic_rows)
-    df_base.to_csv(os.path.join(CSV_DIR, "baseline_kpis.csv"), index=False)
+    all_curves = []
+    all_kpis = []
 
-    # 3. Benchmark table
-    qdf = pd.read_csv(os.path.join(CSV_DIR, "qlearning_kpis.csv"))
-    bl = pd.read_csv(os.path.join(CSV_DIR, "baseline_kpis.csv"))
+    for sc in scenarios:
+        sid = sc["id"]
+        env_cfg = sc["env"]
 
-    # mean KPIs
-    q_mean = qdf.groupby("method")[["service_level","total_cost","scri_viol","VaR95","TVaR95"]].mean()
-    bl_mean = bl.groupby("method")[["service_level","total_cost","scri_viol","VaR95","TVaR95"]].mean()
-    bench = pd.concat([bl_mean, q_mean])
-    bench.to_csv(os.path.join(CSV_DIR, "benchmark_table.csv"))
+        curves, kpis = run_qlearning_one_scenario(
+            scenario_id=sid,
+            env_cfg=env_cfg,
+            episodes=1000,
+            seeds=(0, 1, 2),
+        )
+        all_curves.extend(curves)
+        all_kpis.extend(kpis)
 
-    print("Wrote benchmark_table.csv")
+        png_path = save_learning_curve_png(all_curves, sid)
+        print(f"[OK] Saved learning curve -> {png_path}")
 
-    # 4. Plot comparison
-    bench[["total_cost","scri_viol"]].plot(kind="bar")
-    plt.title("Baseline vs Q-learning KPIs")
-    plt.ylabel("Value")
-    plt.savefig(os.path.join(FIG_DIR, "baseline_vs_qlearning.png"))
-    plt.close()
-    print("Saved plots to /figures/")
+        pd.DataFrame([k for k in all_kpis if k["scenario"] == sid]).to_csv(
+            os.path.join(CSV_DIR, f"qlearning_kpis_{sid}.csv"), index=False
+        )
+
+    ql_out = os.path.join(REPORT_DIR, "ql_results.csv")
+    pd.DataFrame(all_kpis).to_csv(ql_out, index=False)
+    print(f"[OK] Wrote consolidated Q-learning KPIs -> {ql_out}")
+
 
 if __name__ == "__main__":
-    env_cfg = {"max_steps": 30}  # same config as before
-    run_all(env_cfg)
+    main()
