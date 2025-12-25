@@ -21,5 +21,12 @@
     "order_qty": [0, 5, 10, 15, 20],
     "expedite": [0, 1],
     "mitigate": [0, 1]
+  },
+
+  "risk": {
+    "risk_mode": "cvar",     
+    "cvar_alpha": 0.95,
+    "cvar_weight": 1.0,      
+    "week_agg": 7
   }
 }

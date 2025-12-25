@@ -40,6 +40,17 @@ def compute_kpis(ep_log, week=7, scri_threshold=0.7):
     }
 
 
+# def _weights_from_env(env: SupplyChainSimEnv):
+#     return {
+#         "c_h": getattr(env, "c_h", np.nan),
+#         "c_b": getattr(env, "c_b", np.nan),
+#         "c_o": getattr(env, "c_o", np.nan),
+#         "c_disruption": getattr(env, "c_disruption", np.nan),
+#         "lambda_scri": getattr(env, "lambda_scri", np.nan),
+#         "scri_threshold": getattr(env, "scri_threshold", 0.7),
+#         "scri_mode": getattr(env, "scri_mode", "indicator"),
+#     }
+
 def _weights_from_env(env: SupplyChainSimEnv):
     return {
         "c_h": getattr(env, "c_h", np.nan),
@@ -49,8 +60,10 @@ def _weights_from_env(env: SupplyChainSimEnv):
         "lambda_scri": getattr(env, "lambda_scri", np.nan),
         "scri_threshold": getattr(env, "scri_threshold", 0.7),
         "scri_mode": getattr(env, "scri_mode", "indicator"),
+        "risk_mode": getattr(env, "risk_mode", "none"),
+        "cvar_alpha": getattr(env, "cvar_alpha", 0.95),
+        "cvar_weight": getattr(env, "cvar_weight", 0.0),
     }
-
 
 def run_policy(env, policy, episodes=50, seed=0, method_name="baseline", scenario_id="S?"):
     out = []
@@ -146,14 +159,34 @@ def main():
         all_rows.extend(grid_sS(env_cfg, episodes=50, seed=42, scenario_id=sid))
         all_rows.extend(run_myopic(env_cfg, episodes=50, seed=42, scenario_id=sid))
 
+    # df = pd.DataFrame(all_rows)
+
+    # out_path = os.path.join(REPORT_DIR, "baselines.csv")
+    # df.to_csv(out_path, index=False)
+
+    # df.to_csv(os.path.join(CSV_DIR, "baseline_kpis.csv"), index=False)
+
+    # print(f"[OK] Wrote consolidated baselines -> {out_path}")
+
     df = pd.DataFrame(all_rows)
 
     out_path = os.path.join(REPORT_DIR, "baselines.csv")
     df.to_csv(out_path, index=False)
-
     df.to_csv(os.path.join(CSV_DIR, "baseline_kpis.csv"), index=False)
 
+    summary = (
+        df
+        .groupby(["scenario", "method", "seed"], as_index=False)[
+            ["total_cost", "service_level", "scri_viol", "VaR95", "TVaR95"]
+        ]
+        .mean()
+    )
+    summary_path = os.path.join(REPORT_DIR, "mean_vs_var_baselines.csv")
+    summary.to_csv(summary_path, index=False)
+
     print(f"[OK] Wrote consolidated baselines -> {out_path}")
+    print(f"[OK] Wrote mean vs VaR/TVaR summary -> {summary_path}")
+
 
 
 if __name__ == "__main__":

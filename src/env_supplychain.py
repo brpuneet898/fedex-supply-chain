@@ -132,6 +132,14 @@ class SupplyChainSimEnv(gym.Env):
         if self.scri_mode not in ("indicator", "hinge"):
             self.scri_mode = "indicator"
 
+        risk_cfg = self.config.get("risk", {}) if isinstance(self.config.get("risk", {}), dict) else {}
+        self.risk_mode = str(risk_cfg.get("risk_mode", "none")).lower().strip()
+        if self.risk_mode not in ("none", "scri", "cvar"):
+            self.risk_mode = "none"
+
+        self.cvar_alpha = float(risk_cfg.get("cvar_alpha", 0.95))   
+        self.cvar_weight = float(risk_cfg.get("cvar_weight", 0.0)) 
+
         # --- misc ---
         self.max_steps = int(self.config.get("max_steps", 30))
         self.initial_inventory = int(self.config.get("initial_inventory", 50))
@@ -153,6 +161,9 @@ class SupplyChainSimEnv(gym.Env):
         self.scri = 0.0
         self.done = False
         self.total_cost = 0.0
+        self.step_costs = []
+        self.var_estimate = None
+        self.cvar_estimate = None
         self.order_pipeline = []
         self.demand_forecast = 10
         self._setup_events()
@@ -223,12 +234,53 @@ class SupplyChainSimEnv(gym.Env):
         else:
             scri_penalty = self.lambda_scri * float(self.scri > self.scri_threshold)
 
+        # cost = holding_cost + stockout_cost + order_cost + disruption_cost + scri_penalty
+        # self.total_cost += float(cost)
         cost = holding_cost + stockout_cost + order_cost + disruption_cost + scri_penalty
+        self.step_costs.append(float(cost))
+
+        cvar_penalty = 0.0
+        var_alpha = None
+        cvar_value = None
+
+        if self.risk_mode == "cvar" and self.cvar_weight > 0.0 and len(self.step_costs) >= 5:
+            alpha = float(np.clip(self.cvar_alpha, 1e-6, 1.0 - 1e-6))
+            var_alpha = float(np.percentile(self.step_costs, alpha * 100.0))
+            tail = [c for c in self.step_costs if c >= var_alpha]
+            cvar_value = float(np.mean(tail)) if tail else var_alpha
+            if cost >= var_alpha:
+                cvar_penalty = self.cvar_weight * cvar_value
+                cost += cvar_penalty
+
+        self.var_estimate = var_alpha
+        self.cvar_estimate = cvar_value
+
         self.total_cost += float(cost)
 
         self.done = self.current_step >= self.max_steps
         obs = self._get_obs()
 
+        # info = {
+        #     "cost": float(cost),
+        #     "scri": float(self.scri),
+        #     "demand": int(demand),
+        #     "fulfilled": int(fulfilled),
+        #     "stockout": int(stockout),
+        #     "cost_breakdown": {
+        #         "holding": float(holding_cost),
+        #         "stockout": float(stockout_cost),
+        #         "order": float(order_cost),
+        #         "disruption": float(disruption_cost),
+        #         "scri_penalty": float(scri_penalty),
+        #     },
+        #     "weights": {
+        #         "c_h": self.c_h, "c_b": self.c_b, "c_o": self.c_o,
+        #         "c_disruption": self.c_disruption,
+        #         "lambda_scri": self.lambda_scri,
+        #         "scri_threshold": self.scri_threshold,
+        #         "scri_mode": self.scri_mode,
+        #     }
+        # }
         info = {
             "cost": float(cost),
             "scri": float(self.scri),
@@ -241,13 +293,24 @@ class SupplyChainSimEnv(gym.Env):
                 "order": float(order_cost),
                 "disruption": float(disruption_cost),
                 "scri_penalty": float(scri_penalty),
+                "cvar_penalty": float(cvar_penalty),
             },
             "weights": {
-                "c_h": self.c_h, "c_b": self.c_b, "c_o": self.c_o,
+                "c_h": self.c_h,
+                "c_b": self.c_b,
+                "c_o": self.c_o,
                 "c_disruption": self.c_disruption,
                 "lambda_scri": self.lambda_scri,
                 "scri_threshold": self.scri_threshold,
                 "scri_mode": self.scri_mode,
+            },
+            "risk": {
+                "mode": self.risk_mode,
+                "cvar_alpha": self.cvar_alpha,
+                "cvar_weight": self.cvar_weight,
+                "var_estimate": float(self.var_estimate) if self.var_estimate is not None else None,
+                "cvar_estimate": float(self.cvar_estimate) if self.cvar_estimate is not None else None,
+                "cvar_penalty": float(cvar_penalty),
             }
         }
         return obs, -float(cost), self.done, info
