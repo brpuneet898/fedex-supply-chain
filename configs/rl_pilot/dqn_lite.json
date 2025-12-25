@@ -1,0 +1,10 @@
+{
+  "training": {
+    "episodes": 1000,
+    "seeds": [0,1,2],
+    "lr": 0.001,
+    "gamma": 0.99,
+    "batch": 64,
+    "buffer": 50000
+  }
+}
