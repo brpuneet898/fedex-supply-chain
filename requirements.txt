@@ -9,3 +9,8 @@ pytest
 simpy
 tqdm
 torch
+scikit-learn 
+lightgbm 
+xgboost 
+matplotlib 
+joblib
