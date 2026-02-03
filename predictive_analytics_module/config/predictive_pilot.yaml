@@ -1,0 +1,56 @@
+paths:
+  data_csv: "./DataCoSupplyChainDataset.csv"
+  results_dir: "./results"
+  plots_dir: "./plots"
+  models_dir: "./results/models"
+  model_card_path: "./model_card_1pager.md"
+
+panel:
+  facility_col: "Order Region"
+  origin_col: "Order Country"
+  dest_col: "Customer Country"
+  ship_date_col: "shipping date (DateOrders)"
+  days_real_col: "Days for shipping (real)"
+  days_sched_col: "Days for shipment (scheduled)"
+  shipping_mode_col: "Shipping Mode"
+  market_col: "Market"
+
+targets:
+  cls_delay_prob_threshold: 0.80      # y_cls = 1 if delay_prob >= threshold
+  reg_target: "delay_p90"             # delay_p90 of delay_days
+
+features:
+  lags: [1, 2, 4]
+  rolling_windows: [4]
+  min_history_weeks: 6                # drop panel rows without enough lag history
+
+split:
+  test_weeks: 8                       # last N weeks as test
+  val_weeks: 4                        # weeks before test used for calibration/early stop
+
+models:
+  glm:
+    cls_C: 1.0
+    reg_alpha: 1.0
+
+  lgbm:
+    cls:
+      n_estimators: 600
+      learning_rate: 0.05
+      num_leaves: 63
+      subsample: 0.9
+      colsample_bytree: 0.9
+      random_state: 42
+    reg:
+      n_estimators: 800
+      learning_rate: 0.05
+      num_leaves: 63
+      subsample: 0.9
+      colsample_bytree: 0.9
+      random_state: 42
+
+calibration:
+  method: "isotonic"                  # "sigmoid" or "isotonic"
+
+output:
+  save_top_k_metrics: 50
