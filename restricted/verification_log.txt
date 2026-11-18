@@ -1,0 +1,13 @@
+PASS hash count_ledger.csv
+PASS hash fixed_population_before_after.csv
+PASS hash reconciliation_destination.csv
+PASS hash reconciliation_service.csv
+PASS hash reconciliation_origin.csv
+PASS hash reconciliation_week.csv
+PASS hash audit_summary.json
+PASS aggregate conservation reconciliation_destination.csv
+PASS aggregate conservation reconciliation_service.csv
+PASS aggregate conservation reconciliation_origin.csv
+PASS aggregate conservation reconciliation_week.csv
+PASS: hashes, population invariants, and cross-grain package totals
+NOT VERIFIED: historic complete canonicalization or second-operator rerun, source-owner semantics, disclosure clearance

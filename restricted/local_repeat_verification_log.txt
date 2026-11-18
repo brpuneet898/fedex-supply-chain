@@ -1,0 +1,9 @@
+PASS fresh-directory rerun reproducibility (byte-identical): count_ledger.csv
+PASS fresh-directory rerun reproducibility (byte-identical): fixed_population_before_after.csv
+PASS fresh-directory rerun reproducibility (byte-identical): reconciliation_destination.csv
+PASS fresh-directory rerun reproducibility (byte-identical): reconciliation_service.csv
+PASS fresh-directory rerun reproducibility (byte-identical): reconciliation_origin.csv
+PASS fresh-directory rerun reproducibility (byte-identical): reconciliation_week.csv
+PASS fresh-directory rerun reproducibility (byte-identical): audit_summary.json
+Scope: repeated read-only source-snapshot audit in same execution environment by assistant; NOT an independent second-authority/operator rerun.
+Historical complete Bronze workflow remains unverified; snapshot owner semantics/clearance remain pending.

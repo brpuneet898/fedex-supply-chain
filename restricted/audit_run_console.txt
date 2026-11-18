@@ -1,0 +1,123 @@
+{
+  "summary": {
+    "audit_scope": "Independent direct XLSX source-snapshot arithmetic. No historical Bronze pipeline rerun or source-owner semantic validation.",
+    "window_inclusive": [
+      "2024-08-01",
+      "2024-08-31"
+    ],
+    "source_A": {
+      "source": "A",
+      "total": 168897,
+      "selected": 7009,
+      "outside": 161888,
+      "date_unparseable": 0,
+      "raw_missing": 0,
+      "raw_mapped": 0,
+      "raw_unknown": 0,
+      "recovered": 0,
+      "unresolved": 0,
+      "excluded_after_selection": 0,
+      "source_duplicate_keys": 5030,
+      "retained": 7009,
+      "accounting_identity_pass": true
+    },
+    "source_B": {
+      "source": "B",
+      "total": 271802,
+      "selected": 271802,
+      "outside": 0,
+      "date_unparseable": 0,
+      "raw_missing": 27,
+      "raw_mapped": 271775,
+      "raw_unknown": 0,
+      "recovered": 0,
+      "unresolved": 27,
+      "excluded_after_selection": 0,
+      "source_duplicate_keys": 0,
+      "retained": 271802,
+      "accounting_identity_pass": true
+    },
+    "source_A_columns": [
+      "Business_Region",
+      "Dest_Lane",
+      "FY",
+      "ORIG_RAMP",
+      "Orig_Ctry",
+      "PACKS",
+      "Pounds",
+      "Prod_Type",
+      "Prod_Type2",
+      "Product_Code",
+      "Shipments",
+      "WeekNbr",
+      "aPounds",
+      "shp_dt",
+      "shp_dt_yyyymm"
+    ],
+    "source_B_columns": [
+      "BusinessType",
+      "Business_Region",
+      "CustomerType",
+      "Dest_Ctry",
+      "Direction",
+      "Lane",
+      "Lane_",
+      "ORIG_RAMP",
+      "Orig_Ctry",
+      "Orig_Tag",
+      "PAYER_GLOBAL_NAME",
+      "Packs",
+      "PayerCustomer",
+      "Prod_Type",
+      "Prod_Type2",
+      "Product",
+      "SHIPPER_GLOBAL_NAME",
+      "ShipDate",
+      "Shipments",
+      "ShipperCustomer",
+      "WeekNbr",
+      "Weight_Flag",
+      "Weight_Flag2",
+      "aLbs",
+      "yyyymm"
+    ],
+    "total_packages_by_source": {
+      "A": 880869.0,
+      "B": 881435.0,
+      "relative_pct_A_denominator": 0.06425473027203818
+    },
+    "figure1_same_population": {
+      "source": "B",
+      "original_rows": 271802,
+      "original_code_present_mapped": 271775,
+      "original_code_missing_or_unknown": 27,
+      "actually_recovered": 0,
+      "excluded": 0,
+      "after_mapped": 271775,
+      "after_unresolved": 27,
+      "conservation_pass": true
+    },
+    "interpretation_notes": [
+      "Source A filter uses reporting date, Source B filter uses shipment date; no shipment-identity crosswalk demonstrated.",
+      "Source B unresolved rows are not recoveries.",
+      "The literal NA origin-group value is ambiguous without an owner taxonomy; it is separately counted, neither dropped nor assigned to a named site.",
+      "Measure semantics for weight need authoritative source dictionary.",
+      "Per-source aggregates intentionally NOT concatenated/additively summed across overlapping windows.",
+      "No row-level Bronze QA identifiers in these two source snapshots; marginal flags and overlap not independently verifiable."
+    ]
+  },
+  "manifest_input_hashes": [
+    [
+      "Weekly 202201-202412(1)(1).xlsx",
+      "9f2e1d0f6128475cd02f7b3226e306f8374b673bdf1d8bb468da3668b245ff6b"
+    ],
+    [
+      "Aug actuals with DOM (1)(1).xlsx",
+      "906bfeba24fcd778e4f17be49542ad75ad7128da0a4335cec0247e674cf2558d"
+    ],
+    [
+      "Fedex data version 1 (1)(1).xlsb",
+      "6bd8a4a3fd48f02cba289c5ad1157b9e252f6d21726c59a9ab9c635566bdfb7f"
+    ]
+  ]
+}
