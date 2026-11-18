@@ -1,0 +1,51 @@
+{
+  "classification": "RESTRICTED / Centre-approval required; never publish with public manuscript",
+  "audit_type": "NEW READ-ONLY SNAPSHOT ARITHMETIC (NOT full historical pipeline)",
+  "date_window": "2024-08-01 through 2024-08-31 inclusive",
+  "inputs": [
+    {
+      "filename": "Weekly 202201-202412(1)(1).xlsx",
+      "sha256": "9f2e1d0f6128475cd02f7b3226e306f8374b673bdf1d8bb468da3668b245ff6b",
+      "source_owner_authorized_location": "PENDING: institution-controlled location and access grant",
+      "role": "Source A: weekly reporting aggregate"
+    },
+    {
+      "filename": "Aug actuals with DOM (1)(1).xlsx",
+      "sha256": "906bfeba24fcd778e4f17be49542ad75ad7128da0a4335cec0247e674cf2558d",
+      "source_owner_authorized_location": "PENDING: institution-controlled location and access grant",
+      "role": "Source B: August event-date extract"
+    },
+    {
+      "filename": "Fedex data version 1 (1)(1).xlsb",
+      "sha256": "6bd8a4a3fd48f02cba289c5ad1157b9e252f6d21726c59a9ab9c635566bdfb7f",
+      "source_owner_authorized_location": "PENDING: institution-controlled location and access grant",
+      "role": "Supplementary Source C, excluded pending provenance and field-dictionary confirmation"
+    }
+  ],
+  "environment": {
+    "python_version": "3.13.5",
+    "implementation": "Python standard library: zipfile, xml.etree.ElementTree, datetime, csv, json, hashlib",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+  },
+  "execution": "python audit_compute.py --weekly <authorized_weekly.xlsx> --aug <authorized_aug.xlsx> --xlsb <authorized_optional.xlsb> --out <restricted_dir>",
+  "script": {
+    "path": "audit_compute.py",
+    "sha256": "ae92d39af3606e8ae1a6de384cebaec4e5c607c46968ad4a82694e52f04f7801"
+  },
+  "repository": "https://github.com/brpuneet898/fedex-supply-chain",
+  "repository_tree_sha_observed": "4f18a2fc2d1bd0f568ad9e074da81d5c1f0ed6f9",
+  "historical_bronze_execution": "NOT CERTIFIED: existing repository canonicalization scripts differ on mapping, zero-filling, and duplicate handling; no historical fully locked end-to-end run given.",
+  "independent_second_operator_rerun": "PENDING authorized independent reviewer",
+  "source_dictionary_weight_comparability": "PENDING written source-owner confirmation",
+  "calendar_month_event_population_equivalence": "NOT ESTABLISHED without period-allocation crosswalk",
+  "source_C_included_in_main_reconciliation": false,
+  "output_hashes": {
+    "count_ledger.csv": "64d495ab482a8bf9496fccd6bdb40943a21998c2fb1c809aac25435da7727396",
+    "fixed_population_before_after.csv": "a339372ef96ae6f9db1bab3b275afabe8dd42523d4ab5e2ad4fafc259e8eae0d",
+    "reconciliation_destination.csv": "761fc2e0030f128fa0bd3640c0528f565b134a13d65bdaa9d6d07777b12ccdc3",
+    "reconciliation_service.csv": "c275ee307429238f898ce5265ad6c7a139c9e7cb103e704d1720e6dcf4b66517",
+    "reconciliation_origin.csv": "dd291f3cb92794c0eabd8bce4a5d9dc9e9ac53cd8b10ad0fac5a3ff9d19a5de4",
+    "reconciliation_week.csv": "f396e137fbf008a3bbf87a3428684cb01eff00cf18e9f3235142c3216acc9b03",
+    "audit_summary.json": "4a9a889c091187368dd819b6b491eaed13ea84e73764eda750458782a71f2aee"
+  }
+}

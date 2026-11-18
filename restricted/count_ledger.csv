@@ -1,0 +1,12 @@
+source,stage,rows
+A,input,168897
+A,inside date window,7009
+A,outside/invalid date,161888
+B,input,271802
+B,inside date window,271802
+B,outside/invalid date,0
+B,mapped original code,271775
+B,successfully recovered missing code,0
+B,unresolved raw code,27
+B,excluded after date selection,0
+B,post-rule retained (mapped + unresolved),271802

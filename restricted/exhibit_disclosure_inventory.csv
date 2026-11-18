@@ -1,0 +1,22 @@
+Original exhibit,Original LaTeX label,Disclosure risk / type,Proposed public treatment,Restricted supporting evidence,Centre/FedEx clearance status
+Old Fig. 1,fig:lane_harmonization,before/after empirical destination-category counts,Removed from public; new private same-population figure,fixed_population_before_after.csv; figure1_fixed_population_RESTRICTED.pdf,Not cleared
+Old Fig. 2,fig:product_delta,empirical package counts by service,Removed from public,"reconciliation_service.csv (new arithmetic, not historical figure pixels)",Not cleared
+Old Fig. 3,fig:ramp_delta,empirical origin-site discrepancies,Removed from public,reconciliation_origin.csv,Not cleared
+Old table,tab:missingness,derived Bronze literal missingness counts,Removed from public; method retained,Historical source-level QA artifacts unpinned,Not cleared
+Old table,tab:nonnegativity_real,derived Bronze negative-value counts,Removed from public; method retained,Historical source-level QA artifacts unpinned,Not cleared
+Old table,tab:pk_uniqueness,derived Bronze zero-duplicate claim,Removed and claim revised,audit_summary.json: raw-seven-key repeats show stage distinction,Not cleared
+Old table,tab:plausibility_real,marginal Bronze QA flag counts,Restricted; public set overlap formula only,Legacy QA marginal counts; row IDs missing,Not cleared
+Old table,tab:recon_lane,pre-harmonization empirical mirror-pair deltas,Removed; methodological statement only,reconciliation_destination.csv; fixed_population_before_after.csv,Not cleared
+Old table,tab:recon_product,service percentage discrepancies,Removed; no all-category 82.2% maximum,reconciliation_service.csv,Not cleared
+Old table,tab:recon_ramp,four-site subset percentages,Removed; ambiguous NA group separately retained,reconciliation_origin.csv,Not cleared
+Old table,tab:post_harmonization,post-harmonized empirical category percentages,Removed; only guarded qualitative finding retained,reconciliation_destination.csv,Not cleared
+Old table,tab:bronze_summary,observed destination/service category counts,Removed; generic schema retained,Historical derived Bronze output not pinned,Not cleared
+Old table,tab:recon_summary,empirical maxima and category results,Removed and maximum corrected privately,reconciliation_service.csv; reconciliation_origin.csv,Not cleared
+Old App A.1,tab:verified-count,exact direct source row census,Moved to restricted.tex,count_ledger.csv; audit_summary.json,Restricted only
+Old App A.1,tab:verified-codemap,actual operational code mapping and counts,Moved to restricted.tex,fixed_population_before_after.csv,Restricted only
+Old App A.1,tab:verified-by_lane,actual destination-group reconciliation,Moved to restricted.tex,reconciliation_destination.csv,Restricted only
+Old App A.1,tab:verified-by_service,actual service-group reconciliation,Moved to restricted.tex,reconciliation_service.csv,Restricted only
+Old App A.1,tab:verified-by_ramp,"actual origin reconciliation, includes NA group",Moved to restricted.tex,reconciliation_origin.csv,Restricted only
+Old App A.1,tab:verified-week,week-number summary from original appendix,Moved to restricted.tex; recomputed using new date-filtered audit,reconciliation_week.csv,Restricted only
+Qualitative text,Public abstract/results/discussion,high-level evidence-bounded finding without empirical counts,"Proposed public text, subject to written clearance",audit_summary.json; source-selected arithmetic outputs,Pending exact-package written clearance
+Generic tables,tab:prior;tab:sources;tab:schema;tab:gates;tab:evidence,method/roles/constraints; no empirical values,Retained in public candidate,main.tex source; publication PDF,Pending exact-package written clearance
